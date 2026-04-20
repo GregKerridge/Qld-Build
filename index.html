@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="QLD Build">
+<meta name="theme-color" content="#0f1a0f">
+<title>QLD Building Standards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1a0f; --bg2: #162016; --bg3: #1d2b1d; --card: #1a261a;
+    --border: rgba(120,180,80,0.15); --border2: rgba(120,180,80,0.3);
+    --green: #7ab450; --green2: #5a9030; --green-dim: rgba(122,180,80,0.12);
+    --text: #e8f0e0; --text2: #8aaa70; --text3: #556644; --accent: #c8e860;
+    --mono: 'DM Mono', monospace; --sans: 'Barlow', sans-serif; --cond: 'Barlow Condensed', sans-serif;
+    --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); overflow: hidden; }
+  #app { display: flex; flex-direction: column; height: 100dvh; padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
+
+  header { padding: 14px 20px 12px; border-bottom: 1px solid var(--border); background: var(--bg); flex-shrink: 0; display: flex; align-items: center; gap: 12px; }
+  .logo-mark { width: 32px; height: 32px; background: var(--green); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .logo-mark svg { width: 18px; height: 18px; }
+  .header-text { flex: 1; }
+  header h1 { font-family: var(--cond); font-size: 18px; font-weight: 700; color: var(--accent); letter-spacing: 0.03em; line-height: 1; }
+  header p { font-size: 11px; color: var(--text3); font-family: var(--mono); margin-top: 2px; }
+  .mode-toggle { display: flex; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 3px; gap: 2px; }
+  .mode-btn { font-size: 11px; font-family: var(--mono); padding: 4px 10px; border-radius: 5px; border: none; background: transparent; color: var(--text3); cursor: pointer; transition: all 0.15s; }
+  .mode-btn.active { background: var(--green); color: #0f1a0f; font-weight: 500; }
+
+  #chat-view, #browse-view { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+  .hidden { display: none !important; }
+
+  #messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; -webkit-overflow-scrolling: touch; }
+  .msg { padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.6; animation: fadeUp 0.2s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .msg.user { align-self: flex-end; max-width: 88%; background: var(--green2); color: #e8f0e0; border-bottom-right-radius: 4px; }
+  .msg.bot { align-self: flex-start; max-width: 96%; background: var(--card); border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 4px; white-space: pre-wrap; }
+  .msg.typing { align-self: flex-start; background: var(--card); border: 1px solid var(--border); color: var(--text3); font-family: var(--mono); font-size: 13px; border-bottom-left-radius: 4px; }
+  .msg.error { align-self: flex-start; max-width: 96%; background: rgba(200,60,40,0.1); border: 1px solid rgba(200,60,40,0.3); color: #e08070; font-size: 13px; border-bottom-left-radius: 4px; }
+  .source-pills { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .pill { font-size: 10px; font-family: var(--mono); padding: 2px 8px; border-radius: 999px; background: var(--green-dim); color: var(--green); border: 1px solid var(--border); }
+
+  #input-bar { padding: 10px 12px; border-top: 1px solid var(--border); background: var(--bg2); display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; }
+  #msg-input { flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; color: var(--text); font-family: var(--sans); font-size: 14px; resize: none; outline: none; max-height: 120px; min-height: 42px; line-height: 1.4; }
+  #msg-input::placeholder { color: var(--text3); }
+  #msg-input:focus { border-color: var(--border2); }
+  #send-btn { width: 42px; height: 42px; border-radius: 10px; background: var(--green); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.15s; }
+  #send-btn:hover { background: var(--accent); }
+  #send-btn:disabled { background: var(--bg3); cursor: not-allowed; }
+  #send-btn svg { width: 18px; height: 18px; fill: #0f1a0f; }
+
+  #browse-view { overflow-y: auto; padding: 16px; gap: 16px; -webkit-overflow-scrolling: touch; }
+  .section-title { font-family: var(--mono); font-size: 10px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; padding-left: 2px; }
+  .cards { display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px; }
+  .std-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: border-color 0.15s, background 0.15s; text-align: left; width: 100%; }
+  .std-card:active { border-color: var(--border2); background: var(--bg3); }
+  .card-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--green-dim); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; }
+  .card-body { flex: 1; min-width: 0; }
+  .card-tag { font-family: var(--mono); font-size: 10px; color: var(--green); margin-bottom: 2px; }
+  .card-title { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.3; }
+  .card-arrow { color: var(--text3); font-size: 16px; flex-shrink: 0; }
+
+  .sources-section { margin-top: 4px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .sources-section .section-title { margin-bottom: 10px; }
+  .src-links { display: flex; flex-direction: column; gap: 6px; }
+  .src-link { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; background: var(--bg3); border: 1px solid var(--border); text-decoration: none; color: var(--text2); font-size: 13px; }
+  .src-link-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+  .src-link-url { font-family: var(--mono); font-size: 10px; color: var(--text3); margin-left: auto; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 21V9l9-6 9 6v12H3z" fill="#0f1a0f"/>
+        <path d="M3 21V9l9-6 9 6v12" stroke="#c8e860" stroke-width="1.5" fill="none"/>
+        <rect x="9" y="13" width="6" height="8" fill="#c8e860"/>
+      </svg>
+    </div>
+    <div class="header-text">
+      <h1>QLD BUILD STANDARDS</h1>
+      <p>NCC · QDC · QBCC · AS</p>
+    </div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="chat-tab" onclick="setMode('chat')">Chat</button>
+      <button class="mode-btn" id="browse-tab" onclick="setMode('browse')">Browse</button>
+    </div>
+  </header>
+
+  <div id="chat-view">
+    <div id="messages">
+      <div class="msg bot">G'day! Ask me anything about Queensland residential building standards — NCC, QDC, QBCC requirements, Australian Standards, contracts, insurance, and more.</div>
+    </div>
+    <div id="input-bar">
+      <textarea id="msg-input" rows="1" placeholder="Ask about QLD building standards..."></textarea>
+      <button id="send-btn" onclick="sendMsg()">
+        <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div id="browse-view" class="hidden">
+    <p class="section-title">Structure &amp; materials</p>
+    <div class="cards">
+      <button class="std-card" onclick="askAndSwitch('What are the NCC 2022 timber wall framing requirements for a Class 1a house in QLD including AS 1684?')">
+        <div class="card-icon">🪵</div><div class="card-body"><div class="card-tag">NCC Vol.2 / AS 1684</div><div class="card-title">Timber wall framing</div></div><div class="card-arrow">›</div>
+      </button>
+      <button class="std-card" onclick="askAndSwitch('What are the slab and footing requirements for a house in QLD under NCC 2022 and AS 2870?')">
+        <div class="card-icon">🏗️</div><div class="card-body"><div class="card-tag">NCC Vol.2 / AS 2870</div><div class="card-title">Slabs &amp; footings</div></div><div class="card-arrow">›</div>
+      </button>
+      <button class="std-card" onclick="askAndSwitch('What are the bushfire construction requirements under AS 3959 for a house in QLD and how do I determine the BAL rating?')">
+        <div class="card-icon">🔥</div><div class="card-body"><div class="card-tag">AS 3959</div><div class="card-title">Bushfire (BAL) construction</div></div><div class="card-arrow">›</div>
+      </button>
+      <button class="std-card" onclick="askAndSwitch('What are the wet area waterproofing requirements for a Queensland house under AS 3740?')">
+        <div class="card-icon">🚿</div><div class="card-body"><div class="card-tag">AS 3740</div><div class="card-title">Wet area waterproofing</div></div><div class="card-arrow">›</div>
+      </button>
+      <button class="std-card" onclick="askAndSwitch('What are the downpipe and stormwater drainage requirements for a new house in Queensland under AS/NZS 3500.3?')">
+        <div class="card-icon">🌧️</div><div class="card-body"><div class="card-tag">AS/NZS 3500.3</div><div class="card-title">Downpipes &amp; stormwater</div></div><div class="card-arrow">›</div>
+      </button>
+    </div>
+
+    <p class="section-title">QLD-specific rules</p>
+    <div class="cards">
+      <button class="std-card" onclick="askAndSwitch('What does the Queensland Development Code say about setbacks and site coverage for a house?')">
+        <div class="card-icon">📐</div><div class="card-body"><div class="card-tag">QDC</div><div class="card-title">Setbacks &amp; site coverage</div></div><div class="card-arrow">›</div>
+      </button>
+      <button class="std-card" onclick="askAndSwitch('What are the pool fence and safety barrier requirements in Queensland under the Building Act 1975?')">
+        <div class="card-icon">🏊</div><div class="card-body"><div class="card-tag">Building Act 1975 (Qld)</div><div class="card-title">Pool fence requirements</div></div><div class="card-arrow">›</div>
+      </button>
+      <button class="std-card" onclick="askAndSwitch('What are the Modern Homes livable housing and energy efficiency requirements for new Queensland homes under NCC 2022?')">
+        <div class="card-icon">♿</div><div class="card-body"><div class="card-tag">QDC 4.5 / NCC 2022</div><div class="card-title">Modern Homes standards</div></div><div class="card-arrow">›</div>
+      </button>
+      <button class="std-card" onclick="askAndSwitch('What are the smoke alarm requirements for new houses in Queensland under the Building Regulation 2021?')">
+        <div class="card-icon">🚨</div><div class="card-body"><div class="card-tag">Building Regulation 2021 (Qld)</div><div class="card-title">Smoke alarm requirements</div></div><div class="card-arrow">›</div>
+      </button>
+    </div>
+
+    <p class="section-title">Licensing &amp; contracts</p>
+    <div class="cards">
+      <button class="std-card" onclick="askAndSwitch('When is QBCC Home Warranty Insurance required in Queensland and how does it work?')">
+        <div class="card-icon">📋</div><div class="card-body"><div class="card-tag">QBCC Act 1991</div><div class="card-title">Home Warranty Insurance</div></div><div class="card-arrow">›</div>
+      </button>
+      <button class="std-card" onclick="askAndSwitch('When is a written contract required for residential building work in Queensland and what must it include?')">
+        <div class="card-icon">📝</div><div class="card-body"><div class="card-tag">QBCC Act / Regulation</div><div class="card-title">Written contract requirements</div></div><div class="card-arrow">›</div>
+      </button>
+      <button class="std-card" onclick="askAndSwitch('What QBCC licence category do I need to build a Class 1a house in Queensland?')">
+        <div class="card-icon">🪪</div><div class="card-body"><div class="card-tag">QBCC</div><div class="card-title">Licence requirements</div></div><div class="card-arrow">›</div>
+      </button>
+      <button class="std-card" onclick="askAndSwitch('What are the minimum financial requirements MFR for a QBCC building licence in Queensland?')">
+        <div class="card-icon">💰</div><div class="card-body"><div class="card-tag">QBCC MFR</div><div class="card-title">Financial requirements (MFR)</div></div><div class="card-arrow">›</div>
+      </button>
+    </div>
+
+    <p class="section-title">Access &amp; safety</p>
+    <div class="cards">
+      <button class="std-card" onclick="askAndSwitch('How wide does the front door need to be for a new house in Queensland under NCC 2022 and the Modern Homes livable housing standard?')">
+        <div class="card-icon">🚪</div><div class="card-body"><div class="card-tag">NCC 2022 / QDC 4.5</div><div class="card-title">Door width requirements</div></div><div class="card-arrow">›</div>
+      </button>
+      <button class="std-card" onclick="askAndSwitch('What are the stair balustrade and deck height requirements for a Queensland house under NCC 2022 Volume 2?')">
+        <div class="card-icon">🪜</div><div class="card-body"><div class="card-tag">NCC Vol.2</div><div class="card-title">Stairs &amp; balustrades</div></div><div class="card-arrow">›</div>
+      </button>
+      <button class="std-card" onclick="askAndSwitch('What are the insulation and NatHERS energy rating requirements for a new house in Queensland under NCC 2022?')">
+        <div class="card-icon">⚡</div><div class="card-body"><div class="card-tag">NCC 2022 / NatHERS</div><div class="card-title">Insulation &amp; energy rating</div></div><div class="card-arrow">›</div>
+      </button>
+    </div>
+
+    <div class="sources-section">
+      <p class="section-title">Official sources</p>
+      <div class="src-links">
+        <a class="src-link" href="https://ncc.abcb.gov.au" target="_blank"><div class="src-link-dot"></div>NCC / Australian Building Codes Board<span class="src-link-url">abcb.gov.au</span></a>
+        <a class="src-link" href="https://www.business.qld.gov.au/industries/building-property-development/building-construction/laws-codes-standards" target="_blank"><div class="src-link-dot"></div>Queensland Development Code<span class="src-link-url">business.qld.gov.au</span></a>
+        <a class="src-link" href="https://www.qbcc.qld.gov.au" target="_blank"><div class="src-link-dot"></div>QBCC<span class="src-link-url">qbcc.qld.gov.au</span></a>
+        <a class="src-link" href="https://www.standards.org.au" target="_blank"><div class="src-link-dot"></div>Australian Standards<span class="src-link-url">standards.org.au</span></a>
+        <a class="src-link" href="https://www.housing.qld.gov.au/initiatives/modern-homes" target="_blank"><div class="src-link-dot"></div>Modern Homes — QLD Housing<span class="src-link-url">housing.qld.gov.au</span></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SYSTEM = `You are an expert assistant specialising in Australian building standards and regulations for residential construction in Queensland. You help building company owners, builders, and tradespeople find accurate, specific information quickly.
+
+Key sources (cite explicitly):
+- NCC 2022 / BCA Volume 2 — Class 1 & 10 buildings. abcb.gov.au
+- Queensland Development Code (QDC). business.qld.gov.au
+- QBCC — licensing, contracts, insurance. qbcc.qld.gov.au
+- Australian Standards (AS 1684, AS 3740, AS 3959, AS 2870, AS/NZS 3500.3 etc). standards.org.au
+- Building Act 1975 (Qld) and Building Regulation 2021 (Qld)
+- Modern Homes / QLD Housing. housing.qld.gov.au
+
+Rules:
+- Cite specific codes and section numbers where known
+- Distinguish QLD-specific rules from national NCC requirements
+- NCC 2022 current from 1 May 2023; Modern Homes livable housing from 1 Oct 2023; energy efficiency from 1 May 2024
+- Note when a certifier, engineer or licensed trade is required
+- Keep answers practical and direct for a working builder
+- Plain text, short paragraphs, no markdown symbols
+- If uncertain, direct to QBCC on 139 333`;
+
+const history = [];
+
+function setMode(mode) {
+  document.getElementById('chat-view').classList.toggle('hidden', mode !== 'chat');
+  document.getElementById('browse-view').classList.toggle('hidden', mode !== 'browse');
+  document.getElementById('chat-tab').classList.toggle('active', mode === 'chat');
+  document.getElementById('browse-tab').classList.toggle('active', mode === 'browse');
+}
+
+function askAndSwitch(q) {
+  setMode('chat');
+  setTimeout(() => sendMsg(q), 100);
+}
+
+async function sendMsg(preset) {
+  const inp = document.getElementById('msg-input');
+  const text = preset || inp.value.trim();
+  if (!text) return;
+  inp.value = '';
+  autoResize();
+  addMsg('user', text);
+  history.push({ role: 'user', content: text });
+  const typing = addMsg('typing', 'Looking that up...');
+  document.getElementById('send-btn').disabled = true;
+
+  try {
+    const res = await fetch('/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: SYSTEM, messages: history })
+    });
+    if (!res.ok) throw new Error('Server error ' + res.status);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+    const reply = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+    if (!reply) throw new Error('Empty response');
+    typing.remove();
+    const el = addMsg('bot', reply);
+    const pills = detectSources(reply);
+    if (pills.length) {
+      const row = document.createElement('div');
+      row.className = 'source-pills';
+      pills.forEach(p => { const s = document.createElement('span'); s.className = 'pill'; s.textContent = p; row.appendChild(s); });
+      el.appendChild(row);
+    }
+    history.push({ role: 'assistant', content: reply });
+  } catch (err) {
+    typing.remove();
+    addMsg('error', 'Something went wrong. Check your connection and try again.\n\n' + err.message);
+  }
+  document.getElementById('send-btn').disabled = false;
+}
+
+function detectSources(text) {
+  const t = text.toLowerCase();
+  const found = [];
+  if (t.includes('ncc') || t.includes('national construction code')) found.push('NCC');
+  if (t.includes('qdc') || t.includes('queensland development code')) found.push('QDC');
+  if (t.includes('qbcc')) found.push('QBCC');
+  if (/\bas \d/.test(t) || t.includes('australian standard')) found.push('Australian Standards');
+  if (t.includes('building act') || t.includes('building regulation')) found.push('Building Act');
+  if (t.includes('modern homes') || t.includes('nathers')) found.push('Modern Homes');
+  return found;
+}
+
+function addMsg(cls, text) {
+  const log = document.getElementById('messages');
+  const el = document.createElement('div');
+  el.className = 'msg ' + cls;
+  el.textContent = text;
+  log.appendChild(el);
+  el.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  return el;
+}
+
+function autoResize() {
+  const t = document.getElementById('msg-input');
+  t.style.height = 'auto';
+  t.style.height = Math.min(t.scrollHeight, 120) + 'px';
+}
+
+document.getElementById('msg-input').addEventListener('input', autoResize);
+document.getElementById('msg-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+});
+</script>
+</body>
+</html>
